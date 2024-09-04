@@ -1,0 +1,26 @@
+[                   instalações básicas para funcionar o script:          ]
+[               -> chmod +x script.sh                                     ]
+[               -> sudo apt install libimage-exiftool-perl                ]
+[                   instalações básicas para funcionar a galeria:         ]
+[               -> sudo apt install php                                   ]
+
+#####################TUTORIAL PARA EXECUTAR O SCRIPT#####################
+Para executar o script digite o seguinte comando:
+./script.sh <diretorio de origem> <diretorio do destino(backup)>
+(ex: ./script.sh fotos backup)
+
+
+*<diretorio de fotos>: é a pasta onde estão armazenadas as fotos.
+*<diretorio do backup>: vai ser o novo diretorio a ser usado ou criado (caso não exista) e vai copiar e organizar as pastas e fotos.
+
+#####################TUTORIAL PARA EXECUTAR A GALERIA PHP#####################
+
+Para executar a galeria use o seguinte comando:
+php -S localhost:8000
+
+
+FAQ:
+
+?: o script deu permissao negada, o que fazer?
+r: chmod +x <nome do script>.sh
+
