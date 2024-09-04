@@ -20,7 +20,7 @@ diretorio_destino="$2"
 function criar_estrutura() {
     local caminho="$diretorio_destino/$(date -d "$1" +%Y/%m/%d)"
     mkdir -p "$caminho"
-    cp "$2" "$caminho"
+    cp -p "$2" "$caminho" 
 }
 
 # Função de organizar fotos
