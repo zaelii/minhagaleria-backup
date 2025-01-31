@@ -1,0 +1,106 @@
+#!/bin/bash
+
+# Função para criar a estrutura de diretórios para uma foto
+function criar_estrutura() {
+    local caminho="$diretorio_destino/$(date -d "$1" +%Y/%m/%d)"
+    mkdir -p "$caminho"
+    cp -p "$2" "$caminho" 
+}
+
+# Função de organizar fotos
+function organizar_fotos() {
+    shopt -s nullglob
+    
+    for foto in "$1"/*.{jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,mp4,MP4,bmp,BMP,mov,MOV,avi,AVI,wmv,WMV,flv,FLV}; do
+        nome=$(basename "$foto")
+        ((cont++))  # Incrementa o contador
+        echo "Processando arquivo $cont: $nome"
+
+        # Extrai o nome do arquivo dos metadados EXIF usando exiftool
+        nome=$(exiftool -FileName -s3 "$foto")
+        
+        # Identifica formatos específicos e extrai a data
+        if [[ $nome =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+            data=$(echo "$nome" | cut -d'-' -f1-3)
+        elif [[ $nome =~ ^[0-9]{8}_[0-9]{6} ]]; then
+            data=$(echo "$nome" | cut -d'_' -f1)
+        elif [[ $nome =~ ^IMG-[0-9]{8}-WA[0-9]{4} ]]; then
+            data=$(echo "$nome" | cut -d'-' -f2)
+        elif [[ $nome =~ ^IMG_[0-9]{8}_[0-9]{9}_TOP ]]; then
+            data=$(echo "$nome" | cut -d'_' -f2)
+        elif [[ $nome =~ ^VID_[0-9]{8}_[0-9]{9} ]]; then
+            data=$(echo "$nome" | cut -d'_' -f2)
+        elif [[ $nome =~ ^PXL_[0-9]{8}_[0-9]{9} ]]; then
+            data=$(echo "$nome" | cut -d'_' -f2)
+        elif [[ $nome =~ ^Imagem[[:space:]]+[0-9]{3} ]]; then
+            data=$(stat -c %y "$foto" | cut -d' ' -f1)
+            if [[ -z "$data" ]]; then
+                data=$(exiftool -DateTimeOriginal -d '%Y-%m-%d' -s3 "$foto")
+            fi
+        elif [[ $nome =~ ^IMG_[0-9]{4} ]]; then
+            ano=$(echo "$nome" | cut -d'_' -f2 | cut -d'.' -f1)
+            mes_dia=$(stat -c %y "$foto" | cut -d' ' -f1 | cut -d'-' -f2-3)
+            data="$ano-$mes_dia"
+            if [[ -z "$data" ]]; then
+                data=$(exiftool -DateTimeOriginal -d '%Y-%m-%d' -s3 "$foto")
+            fi
+        fi
+        
+        if [[ -n "$data" ]]; then
+            criar_estrutura "$data" "$foto"
+        fi
+    done0
+    shopt -u nullglob
+}
+
+# iterar recursivamente sobre todas as pastas e organizar fotos
+function iterar_pastas() {
+    local diretorio_atual="$1"
+    organizar_fotos "$diretorio_atual"
+    for item in "$diretorio_atual"/*; do
+        if [ -d "$item" ]; then
+            iterar_pastas "$item"
+        fi
+    done
+}
+
+# -------------------------
+# Código principal (codigos1)
+# -------------------------
+
+cont=0
+
+# Verifica se os argumentos foram passados
+if [ $# -ne 2 ]; then
+    echo "Uso: $0 <diretório de origem> <diretório de destino(Backup)>"
+    echo "Caso não tenha as libs exiftool e php instaladas, instale-as com:"
+    echo "sudo apt-get install libimage-exiftool-perl php"
+    exit 1
+fi
+
+# Atribui os argumentos às variáveis
+diretorio_origem="$1"
+diretorio_destino="$2"
+
+# Executar o script
+echo "Iniciando backup das fotos..."
+echo "Diretório de fotos: $diretorio_origem"
+echo "Diretório de backup: $diretorio_destino"
+
+iterar_pastas "$diretorio_origem"
+
+echo "Backup realizado com sucesso! Total de arquivo(s) processado(s): $cont"
+
+# -------------------------
+# Código final (codigos2)
+# -------------------------
+
+# Perguntar se quer executar servidor web
+echo ""
+read -p "Deseja iniciar o servidor web para visualizar as fotos? (s/n) " resposta
+if [ "$resposta" == "s" ]; then
+    echo ""
+    echo "Iniciando servidor web..."
+    xdg-open http://localhost:8000
+    php -S localhost:8000
+fi
