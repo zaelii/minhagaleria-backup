@@ -3,9 +3,6 @@
 # -------------------------
 # Funções
 # -------------------------
-
-
-
 # Função 1: Função para criar a estrutura de diretórios para uma foto
 function criar_estrutura() {
     local caminho="$diretorio_destino/$(date -d "$1" +%Y/%m/%d)"
