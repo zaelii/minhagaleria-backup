@@ -1,29 +1,19 @@
 #!/bin/bash
 
-cont=0
-
-# Verficia se os argumentos foram passados
-if [ $# -ne 2 ]; then
-    echo "Uso: $0 <diretório de origem> <diretório de destino(Backup)>"
-    echo "Caso não tenha as libs exiftool e php instaladas, instale-as com:"
-    echo "sudo apt-get install libimage-exiftool-perl php"
-    exit 1
-fi
+# -------------------------
+# Funções
+# -------------------------
 
 
-# Atribui os argumentos as variáveis
-diretorio_origem="$1"
-diretorio_destino="$2"
 
-
-# Função para criar a estrutura de diretórios para uma foto
+# Função 1: Função para criar a estrutura de diretórios para uma foto
 function criar_estrutura() {
     local caminho="$diretorio_destino/$(date -d "$1" +%Y/%m/%d)"
     mkdir -p "$caminho"
     cp -p "$2" "$caminho" 
 }
 
-# Função de organizar fotos
+# Função 2: Função para organizar as fotos
 function organizar_fotos() {
     # Itera sobre os arquivos de imagem
     shopt -s nullglob
@@ -129,13 +119,15 @@ function organizar_fotos() {
                 data=$(exiftool -DateTimeOriginal -d '%Y-%m-%d' -s3 "$foto")
             fi
             criar_estrutura "$data" "$foto"
-        fi
 
+        # Adicionem novos formatos de nome de arquivo aqui abaixo
+
+        fi
     done
     shopt -u nullglob
 }
 
-# iterar recursivamente sobre todas as pastas e subpastas e pastas das subpastas e organizar TODAS as fotos
+# Função 3: Função para iterar sobre as pastas e organiza todas as fotos
 function iterar_pastas() {
     local diretorio_atual="$1"
     organizar_fotos "$diretorio_atual"
@@ -146,6 +138,25 @@ function iterar_pastas() {
     done
 }
 
+# -------------------------
+# Código principal 
+# -------------------------
+
+cont=0
+
+# Verficia se os argumentos foram passados
+if [ $# -ne 2 ]; then
+    echo "Uso: $0 <diretório de origem> <diretório de destino(Backup)>"
+    echo "Caso não tenha as libs exiftool e php instaladas, instale-as com:"
+    echo "sudo apt-get install libimage-exiftool-perl php"
+    exit 1
+fi
+
+# Atribui os argumentos as variáveis
+diretorio_origem="$1"
+diretorio_destino="$2"
+
+
 # Executar o script
 echo "Iniciando backup das fotos..."
 echo "Diretório de fotos: $diretorio_origem"
@@ -154,6 +165,10 @@ echo "Diretório de backup: $diretorio_destino"
 iterar_pastas "$diretorio_origem"
 
 echo "Backup realizado com sucesso! Total de arquivo(s) processado(s): $cont"
+
+# -------------------------
+# Código final (galeria web)
+# -------------------------
 
 # Perguntar se quer executar servidor web
 echo ""
@@ -164,8 +179,3 @@ if [ "$resposta" == "s" ]; then
     xdg-open http://localhost:8000
     php -S localhost:8000
 fi
-
-
-
-
-
